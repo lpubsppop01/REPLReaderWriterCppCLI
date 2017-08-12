@@ -16,4 +16,4 @@ This C++/CLI library provides reader/writer for external REPL program.
 [lpubsppop01](https://github.com/lpubsppop01)
 
 ## License
-[MIT License](https://github.com/lpubsppop01/REPLReaderWriter/raw/master/LICENSE.txt)
+[MIT License](https://github.com/lpubsppop01/REPLReaderWriterCppCLI/raw/master/LICENSE.txt)
