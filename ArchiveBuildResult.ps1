@@ -11,7 +11,7 @@ if ($args.Length -gt 0) {
 }
 
 $solutionDirPath = Split-Path $MyInvocation.MyCommand.Path -Parent
-$workDirName = "REPLReaderWriter_" + $configulationName + "_" + $platformName
+$workDirName = "REPLReaderWriterCppCLI_" + $configulationName + "_" + $platformName
 $workDirPath = Join-Path $solutionDirPath $workDirName
 $workBinDirPath = Join-Path $workDirPath "bin"
 $workIncludeDirPath = Join-Path $workDirPath "include"
