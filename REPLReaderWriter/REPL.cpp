@@ -3,22 +3,23 @@
 #using "System.Core.dll"
 
 using namespace System::Linq;
+using namespace System::Text::RegularExpressions;
 
 namespace lpubsppop01 {
 namespace REPLReaderWriter {
 
-void REPL::this_OutputDataReceived(Object ^ sender, DataReceivedEventArgs ^ e)
+void REPL::this_OutputDataReceived(Object^ sender, DataReceivedEventArgs^ e)
 {
     if (!(e->Data)) return;
-    Lock lock(m_RuntimeValues->OutputBufferLock);
-    m_RuntimeValues->OutputBuffer->AppendLine(e->Data);
+    Lock lock(m_RuntimeValues->UntestedOutputLinesLock);
+    m_RuntimeValues->UntestedOutputLines->Add(e->Data);
 }
 
-void REPL::this_ErrorDataReceived(Object ^ sender, DataReceivedEventArgs ^ e)
+void REPL::this_ErrorDataReceived(Object^ sender, DataReceivedEventArgs^ e)
 {
     if (!(e->Data)) return;
-    Lock lock(m_RuntimeValues->ErrorBufferLock);
-    m_RuntimeValues->ErrorBuffer->AppendLine(e->Data);
+    Lock lock(m_RuntimeValues->UntestedErrorLinesLock);
+    m_RuntimeValues->UntestedErrorLines->Add(e->Data);
 }
 
 REPL::REPL(REPL^ src)
@@ -26,10 +27,12 @@ REPL::REPL(REPL^ src)
     Command = src->Command;
     Arguments = src->Arguments;
     NewLine = src->NewLine;
-    PromptWithNewLine = src->PromptWithNewLine;
-    if (src->ScriptToSetPrompt) {
+    PromptWithoutNewLine = src->PromptWithoutNewLine;
+    if (src->ScriptToSetPrompt)
+    {
         auto copy = gcnew array<String^>(src->ScriptToSetPrompt->Length);
-        for (int i = 0; i < src->ScriptToSetPrompt->Length; ++i) {
+        for (int i = 0; i < src->ScriptToSetPrompt->Length; ++i)
+        {
             copy[i] = src->ScriptToSetPrompt[i];
         }
         ScriptToSetPrompt = copy;
@@ -41,7 +44,7 @@ REPL::REPL()
     Command = gcnew String("");
     Arguments = gcnew String("");
     NewLine = Environment::NewLine;
-    PromptWithNewLine = gcnew String("");
+    PromptWithoutNewLine = gcnew String("");
     ScriptToSetPrompt = nullptr;
 }
 
@@ -65,13 +68,18 @@ int REPL::Start()
 
     m_RuntimeValues = gcnew RuntimeValueSet();
     m_RuntimeValues->Process = process;
-    m_RuntimeValues->OutputBuffer = gcnew StringBuilder();
-    m_RuntimeValues->OutputBufferLock = gcnew Object();
-    m_RuntimeValues->ErrorBuffer = gcnew StringBuilder();
-    m_RuntimeValues->ErrorBufferLock = gcnew Object();
+    m_RuntimeValues->UntestedOutputLines = gcnew List<String^>();
+    m_RuntimeValues->UntestedErrorLines = gcnew List<String^>();
+    m_RuntimeValues->UntestedOutputLinesLock = gcnew Object();
+    m_RuntimeValues->UntestedErrorLinesLock = gcnew Object();
+    m_RuntimeValues->TestedOutputLines = gcnew List<String^>();
+    m_RuntimeValues->TestedErrorLines = gcnew List<String^>();
+    m_RuntimeValues->TestedOutputLinesLock = gcnew Object();
+    m_RuntimeValues->TestedErrorLinesLock = gcnew Object();
     m_RuntimeValues->TimeoutMilliseconds = TimeoutMilliseconds;
     m_RuntimeValues->NewLine = NewLine;
-    m_RuntimeValues->PromptWithNewLine = PromptWithNewLine;
+    m_RuntimeValues->PromptWithNewLine = PromptWithoutNewLine;
+    m_RuntimeValues->WriteLineCount = 0;
 
     process->OutputDataReceived += gcnew DataReceivedEventHandler(this, &REPL::this_OutputDataReceived);
     process->ErrorDataReceived += gcnew DataReceivedEventHandler(this, &REPL::this_ErrorDataReceived);
@@ -82,60 +90,15 @@ int REPL::Start()
 
     if (ScriptToSetPrompt)
     {
-        for (int i = 0; i < ScriptToSetPrompt->Length; ++i) {
+        for (int i = 0; i < ScriptToSetPrompt->Length; ++i)
+        {
             WriteLine(ScriptToSetPrompt[i]);
+            //WaitForPrompt();
         }
+        m_RuntimeValues->WriteLineCount = 0;
     }
 
     return process->Id;
-}
-
-void REPL::WriteLine(String ^ inputText)
-{
-    if (!m_RuntimeValues) throw gcnew InvalidOperationException();
-    m_RuntimeValues->Process->StandardInput->Write(inputText + NewLine);
-    m_RuntimeValues->Process->StandardInput->Flush();
-}
-
-String ^ REPL::ReadLine()
-{
-    if (!m_RuntimeValues) throw gcnew InvalidOperationException();
-
-    // Wait for prompt
-    Stopwatch^ sw = nullptr;
-    if (m_RuntimeValues->TimeoutMilliseconds > 0)
-    {
-        sw = gcnew Stopwatch();
-        sw->Start();
-    }
-    do
-    {
-        Lock lock(m_RuntimeValues->ErrorBufferLock);
-        auto errorText = m_RuntimeValues->ErrorBuffer->ToString();
-        m_RuntimeValues->ErrorBuffer->Clear();
-        if (errorText->EndsWith(PromptWithNewLine)) break;
-        if (m_RuntimeValues->TimeoutMilliseconds > 0)
-        {
-            if (sw->ElapsedMilliseconds > m_RuntimeValues->TimeoutMilliseconds)
-            {
-                throw gcnew TimeoutException();
-            }
-        }
-    } while (true);
-    if (m_RuntimeValues->TimeoutMilliseconds > 0)
-    {
-        sw->Stop();
-    }
-
-    // Get standard output text
-    auto outputText = gcnew String(L"");
-    do
-    {
-        Lock lock(m_RuntimeValues->OutputBufferLock);
-        outputText += m_RuntimeValues->OutputBuffer->ToString();
-        m_RuntimeValues->OutputBuffer->Clear();
-    } while (outputText->Length == 0);
-    return outputText->TrimEnd(L'\r', L'\n');
 }
 
 void REPL::Stop(int processID)
@@ -147,6 +110,157 @@ void REPL::Stop(int processID)
     }
     m_RuntimeValues->Process->Close();
     m_RuntimeValues = nullptr;
+}
+
+void REPL::WriteLine(String ^ inputText)
+{
+    if (!m_RuntimeValues) throw gcnew InvalidOperationException();
+    m_RuntimeValues->Process->StandardInput->Write(inputText + NewLine);
+    m_RuntimeValues->Process->StandardInput->Flush();
+    ++(m_RuntimeValues->WriteLineCount);
+}
+
+void REPL::WaitFor(String ^ pattern)
+{
+    Stopwatch^ sw = nullptr;
+    if (m_RuntimeValues->TimeoutMilliseconds > 0)
+    {
+        sw = gcnew Stopwatch();
+        sw->Start();
+    }
+
+    do
+    {
+        // Check standard output text
+        if (!String::IsNullOrEmpty(pattern))
+        {
+            Lock lock1(m_RuntimeValues->UntestedOutputLinesLock);
+            bool breaks = false;
+            while (m_RuntimeValues->UntestedOutputLines->Count > 0)
+            {
+                auto outputLine = m_RuntimeValues->UntestedOutputLines[0];
+                m_RuntimeValues->UntestedOutputLines->RemoveAt(0);
+                {
+                    Lock lock2(m_RuntimeValues->TestedOutputLinesLock);
+                    m_RuntimeValues->TestedOutputLines->Add(outputLine);
+                }
+                if (Regex::IsMatch(outputLine, pattern))
+                {
+                    breaks = true;
+                    break;
+                }
+            }
+            if (breaks) break;
+        }
+
+        // Check timeout
+        if (m_RuntimeValues->TimeoutMilliseconds > 0)
+        {
+            if (sw->ElapsedMilliseconds > m_RuntimeValues->TimeoutMilliseconds)
+            {
+                throw gcnew TimeoutException();
+            }
+        }
+    } while (true);
+
+    if (m_RuntimeValues->TimeoutMilliseconds > 0)
+    {
+        sw->Stop();
+    }
+}
+
+void REPL::WaitForPrompt()
+{
+    Stopwatch^ sw = nullptr;
+    if (m_RuntimeValues->TimeoutMilliseconds > 0)
+    {
+        sw = gcnew Stopwatch();
+        sw->Start();
+    }
+
+    do
+    {
+        // Check standard error text
+        if (m_RuntimeValues->WriteLineCount > 0)
+        {
+            Lock lock1(m_RuntimeValues->UntestedErrorLinesLock);
+            bool breaks = false;
+            while (m_RuntimeValues->UntestedErrorLines->Count > 0)
+            {
+                auto errorLine = m_RuntimeValues->UntestedErrorLines[0];
+                m_RuntimeValues->UntestedErrorLines->RemoveAt(0);
+                {
+                    Lock lock2(m_RuntimeValues->TestedErrorLinesLock);
+                    m_RuntimeValues->TestedErrorLines->Add(errorLine);
+                }
+                if (errorLine->EndsWith(PromptWithoutNewLine)) {
+                    --(m_RuntimeValues->WriteLineCount);
+                    breaks = true;
+                    break;
+                }
+            }
+            if (breaks) break;
+        }
+
+        // Check timeout
+        if (m_RuntimeValues->TimeoutMilliseconds > 0)
+        {
+            if (sw->ElapsedMilliseconds > m_RuntimeValues->TimeoutMilliseconds)
+            {
+                throw gcnew TimeoutException();
+            }
+        }
+    } while (true);
+
+    if (m_RuntimeValues->TimeoutMilliseconds > 0)
+    {
+        sw->Stop();
+    }
+}
+
+String^ REPL::ReadOutputLine()
+{
+    {
+        Lock lock(m_RuntimeValues->UntestedOutputLinesLock);
+        if (m_RuntimeValues->UntestedOutputLines->Count > 0) {
+            auto outputLine = m_RuntimeValues->UntestedOutputLines[0];
+            m_RuntimeValues->UntestedOutputLines->RemoveAt(0);
+            return outputLine;
+        }
+    }
+    {
+        Lock lock(m_RuntimeValues->TestedOutputLinesLock);
+        if (m_RuntimeValues->TestedOutputLines->Count > 0)
+        {
+            auto outputLine = m_RuntimeValues->TestedOutputLines[0];
+            m_RuntimeValues->TestedOutputLines->RemoveAt(0);
+            return outputLine;
+        }
+    }
+    return nullptr;
+}
+
+String^ REPL::ReadErrorLine()
+{
+    {
+        Lock lock(m_RuntimeValues->UntestedErrorLinesLock);
+        if (m_RuntimeValues->UntestedErrorLines->Count > 0)
+        {
+            auto errorLine = m_RuntimeValues->UntestedErrorLines[0];
+            m_RuntimeValues->UntestedErrorLines->RemoveAt(0);
+            return errorLine;
+        }
+    }
+    {
+        Lock lock(m_RuntimeValues->TestedErrorLinesLock);
+        if (m_RuntimeValues->TestedErrorLines->Count > 0)
+        {
+            auto errorLine = m_RuntimeValues->TestedErrorLines[0];
+            m_RuntimeValues->TestedErrorLines->RemoveAt(0);
+            return errorLine;
+        }
+    }
+    return nullptr;
 }
 
 }

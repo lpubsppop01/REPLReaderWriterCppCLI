@@ -43,11 +43,32 @@ void REPLManager::WriteLine(int processID, String^ inputText)
     repl->WriteLine(inputText);
 }
 
-String^ REPLManager::ReadLine(int processID)
+void REPLManager::WaitFor(int processID, String ^ pattern)
 {
     auto repl = FindREPL(processID);
     if (repl == nullptr) throw gcnew InvalidOperationException();
-    return repl->ReadLine();
+    repl->WaitFor(pattern);
+}
+
+void REPLManager::WaitForPrompt(int processID)
+{
+    auto repl = FindREPL(processID);
+    if (repl == nullptr) throw gcnew InvalidOperationException();
+    repl->WaitForPrompt();
+}
+
+String^ REPLManager::ReadOutputLine(int processID)
+{
+    auto repl = FindREPL(processID);
+    if (repl == nullptr) throw gcnew InvalidOperationException();
+    return repl->ReadOutputLine();
+}
+
+String^ REPLManager::ReadErrorLine(int processID)
+{
+    auto repl = FindREPL(processID);
+    if (repl == nullptr) throw gcnew InvalidOperationException();
+    return repl->ReadErrorLine();
 }
 
 }

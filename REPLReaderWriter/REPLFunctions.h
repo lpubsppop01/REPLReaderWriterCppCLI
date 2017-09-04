@@ -14,7 +14,10 @@ DECLSPEC_DLLPORT int REPLStartW(const wchar_t* command, const wchar_t* templateN
 DECLSPEC_DLLPORT int REPLStop(int processID);
 DECLSPEC_DLLPORT void REPLSetTimeout(int processID, int timeoutMilliseconds);
 DECLSPEC_DLLPORT void REPLWriteLineW(int processID, const wchar_t* inputText);
-DECLSPEC_DLLPORT const wchar_t* REPLReadLineW(int processID);
+DECLSPEC_DLLPORT int REPLWaitFor(int processID, const wchar_t* pattern);
+DECLSPEC_DLLPORT int REPLWaitForPrompt(int processID);
+DECLSPEC_DLLPORT const wchar_t* REPLReadOutputLineW(int processID);
+DECLSPEC_DLLPORT const wchar_t* REPLReadErrorLineW(int processID);
 
 #ifdef __cplusplus
 }

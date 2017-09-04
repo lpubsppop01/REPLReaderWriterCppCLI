@@ -3,6 +3,7 @@
 #using "System.dll"
 
 using namespace System;
+using namespace System::Collections::Generic;
 using namespace System::Diagnostics;
 using namespace System::Text;
 
@@ -15,13 +16,18 @@ ref class REPL : public ICloneable
     {
     public:
         property Process^ Process;
-        property StringBuilder^ OutputBuffer;
-        property StringBuilder^ ErrorBuffer;
-        property Object^ OutputBufferLock;
-        property Object^ ErrorBufferLock;
+        property List<String^>^ UntestedOutputLines;
+        property List<String^>^ UntestedErrorLines;
+        property Object^ UntestedOutputLinesLock;
+        property Object^ UntestedErrorLinesLock;
+        property List<String^>^ TestedOutputLines;
+        property List<String^>^ TestedErrorLines;
+        property Object^ TestedOutputLinesLock;
+        property Object^ TestedErrorLinesLock;
         property String^ NewLine;
         property String^ PromptWithNewLine;
         property int TimeoutMilliseconds;
+        property int WriteLineCount;
     };
     RuntimeValueSet^ m_RuntimeValues;
     int m_TimeoutMilliseconds;
@@ -37,7 +43,7 @@ public:
     property String^ Command;
     property String^ Arguments;
     property String^ NewLine;
-    property String^ PromptWithNewLine;
+    property String^ PromptWithoutNewLine;
     property array<String^>^ ScriptToSetPrompt;
 
     property int TimeoutMilliseconds
@@ -62,9 +68,12 @@ public:
     }
 
     int Start();
-    void WriteLine(String^ inputText);
-    String^ ReadLine();
     void Stop(int processID);
+    void WriteLine(String^ inputText);
+    void WaitFor(String^ pattern);
+    void WaitForPrompt();
+    String^ ReadOutputLine();
+    String^ ReadErrorLine();
 };
 
 }

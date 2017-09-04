@@ -8,7 +8,7 @@ using namespace System::Collections::Generic;
 namespace lpubsppop01 {
 namespace REPLReaderWriter {
 
-ref class REPLManager abstract sealed
+public ref class REPLManager abstract sealed
 {
     static List<REPL^>^ repls = gcnew List<REPL^>();
     static REPL^ FindREPL(int processID);
@@ -17,7 +17,10 @@ public:
     static void Stop(int processID);
     static void SetTimeout(int processID, int timeoutMilliseconds);
     static void WriteLine(int processID, String^ inputText);
-    static String^ ReadLine(int processID);
+    static void WaitFor(int processID, String ^ pattern);
+    static void WaitForPrompt(int processID);
+    static String^ ReadOutputLine(int processID);
+    static String^ ReadErrorLine(int processID);
 };
 
 }

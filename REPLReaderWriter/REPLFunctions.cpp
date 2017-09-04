@@ -7,7 +7,7 @@ using namespace System;
 using namespace System::Collections::Generic;
 using namespace lpubsppop01::REPLReaderWriter;
 
-const int WCHAR_ARRAY_COUNT_MAX = 20;
+const int WCHAR_ARRAY_COUNT_MAX = 100;
 std::vector<wchar_t*> wcharArrays;
 
 const wchar_t* NewWCharArray(String ^str)
@@ -34,12 +34,6 @@ void DeleteWCharArrays()
     wcharArrays.clear();
 }
 
-DECLSPEC_DLLPORT const wchar_t* REPLTest(const wchar_t* command, const wchar_t* templateName)
-{
-    auto test = gcnew String(command) + gcnew String(templateName);
-    return NewWCharArray(test);
-}
-
 DECLSPEC_DLLPORT int REPLStartW(const wchar_t* command, const wchar_t* templateName)
 {
     try {
@@ -60,9 +54,40 @@ DECLSPEC_DLLPORT void REPLWriteLineW(int processID, const wchar_t* inputText)
     REPLManager::WriteLine(processID, gcnew String(inputText));
 }
 
-DECLSPEC_DLLPORT const wchar_t* REPLReadLineW(int processID)
+DECLSPEC_DLLPORT int REPLWaitFor(int processID, const wchar_t* pattern)
 {
-    auto lineStr = REPLManager::ReadLine(processID);
+    try {
+        REPLManager::WaitFor(processID, gcnew String(pattern));
+    }
+    catch (Exception^) {
+        return -1;
+    }
+    return 0;
+}
+
+DECLSPEC_DLLPORT int REPLWaitForPrompt(int processID)
+{
+    try {
+        REPLManager::WaitForPrompt(processID);
+    }
+    catch (Exception^) {
+        return -1;
+    }
+    return 0;
+}
+
+DECLSPEC_DLLPORT const wchar_t* REPLReadOutputLineW(int processID)
+{
+    auto lineStr = REPLManager::ReadOutputLine(processID);
+    if (lineStr == nullptr) return NULL;
+    auto lineWCharArray = NewWCharArray(lineStr);
+    return lineWCharArray;
+}
+
+DECLSPEC_DLLPORT const wchar_t* REPLReadErrorLineW(int processID)
+{
+    auto lineStr = REPLManager::ReadErrorLine(processID);
+    if (lineStr == nullptr) return NULL;
     auto lineWCharArray = NewWCharArray(lineStr);
     return lineWCharArray;
 }

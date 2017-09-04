@@ -10,7 +10,7 @@ REPL^ REPLTemplates::GetByName(String^ templateName)
         python->Command = "python";
         python->Arguments = "-i";
         python->NewLine = "\n";
-        python->PromptWithNewLine = "lpubsppop01.REPLReaderWriter" + Environment::NewLine;
+        python->PromptWithoutNewLine = "lpubsppop01.REPLReaderWriter";
         python->ScriptToSetPrompt = gcnew array<String^>(2);
         python->ScriptToSetPrompt[0] = "import sys";
         python->ScriptToSetPrompt[1] = "sys.ps1 = 'lpubsppop01.REPLReaderWriter\\n'";
