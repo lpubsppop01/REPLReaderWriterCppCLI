@@ -15,10 +15,19 @@ namespace REPLReaderWriterTests
             int processID = REPLStartW(L"C:/tools/Anaconda3/python.exe", L"Python");
             Assert::IsTrue(processID > 0);
             REPLSetTimeout(processID, 3000);
+
             REPLWriteLineW(processID, L"1 + 1");
-            Assert::IsTrue(REPLWaitFor(processID, L".*") == 0);
+            if (REPLWaitFor(processID, L".*")) {
+                Assert::Fail();
+            }
             auto outputText = REPLReadOutputLineW(processID);
             Assert::IsTrue(outputText != NULL && wcscmp(L"2", outputText) == 0);
+            if (REPLWaitForPrompt(processID)) {
+                Assert::Fail();
+            }
+            auto errorText = REPLReadErrorLineW(processID);
+            Assert::AreEqual(NULL, errorText);
+
             int errorCode = REPLStop(processID);
             Assert::IsTrue(errorCode == 0);
         }

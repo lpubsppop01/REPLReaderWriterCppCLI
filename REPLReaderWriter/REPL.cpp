@@ -22,6 +22,26 @@ void REPL::this_ErrorDataReceived(Object^ sender, DataReceivedEventArgs^ e)
     m_RuntimeValues->UntestedErrorLines->Add(e->Data);
 }
 
+void REPL::ClearBuffer()
+{
+    {
+        Lock lock(m_RuntimeValues->UntestedOutputLinesLock);
+        m_RuntimeValues->UntestedOutputLines->Clear();
+    }
+    {
+        Lock lock(m_RuntimeValues->TestedOutputLinesLock);
+        m_RuntimeValues->TestedOutputLines->Clear();
+    }
+    {
+        Lock lock(m_RuntimeValues->UntestedErrorLinesLock);
+        m_RuntimeValues->UntestedErrorLines->Clear();
+    }
+    {
+        Lock lock(m_RuntimeValues->TestedErrorLinesLock);
+        m_RuntimeValues->TestedErrorLines->Clear();
+    }
+}
+
 REPL::REPL(REPL^ src)
 {
     Command = src->Command;
@@ -93,10 +113,12 @@ int REPL::Start()
         for (int i = 0; i < ScriptToSetPrompt->Length; ++i)
         {
             WriteLine(ScriptToSetPrompt[i]);
-            //WaitForPrompt();
         }
-        m_RuntimeValues->WriteLineCount = 0;
     }
+
+    m_RuntimeValues->WriteLineCount = 1;
+    WaitForPrompt();
+    ClearBuffer();
 
     return process->Id;
 }
@@ -189,15 +211,16 @@ void REPL::WaitForPrompt()
             {
                 auto errorLine = m_RuntimeValues->UntestedErrorLines[0];
                 m_RuntimeValues->UntestedErrorLines->RemoveAt(0);
-                {
+                if (errorLine->EndsWith(PromptWithoutNewLine)) {
+                    errorLine = errorLine->Replace(PromptWithoutNewLine, L"");
+                    --(m_RuntimeValues->WriteLineCount);
+                    breaks = true;
+                }
+                if (!String::IsNullOrEmpty(errorLine)) {
                     Lock lock2(m_RuntimeValues->TestedErrorLinesLock);
                     m_RuntimeValues->TestedErrorLines->Add(errorLine);
                 }
-                if (errorLine->EndsWith(PromptWithoutNewLine)) {
-                    --(m_RuntimeValues->WriteLineCount);
-                    breaks = true;
-                    break;
-                }
+                if (breaks) break;
             }
             if (breaks) break;
         }

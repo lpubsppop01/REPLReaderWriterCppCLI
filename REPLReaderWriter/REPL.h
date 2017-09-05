@@ -33,6 +33,7 @@ ref class REPL : public ICloneable
     int m_TimeoutMilliseconds;
     void this_OutputDataReceived(Object^ sender, DataReceivedEventArgs^ e);
     void this_ErrorDataReceived(Object^ sender, DataReceivedEventArgs^ e);
+    void ClearBuffer();
 protected:
     REPL(REPL^ src);
 public:
