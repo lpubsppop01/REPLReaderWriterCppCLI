@@ -48,11 +48,9 @@ REPL::REPL(REPL^ src)
     Arguments = src->Arguments;
     NewLine = src->NewLine;
     PromptWithoutNewLine = src->PromptWithoutNewLine;
-    if (src->ScriptToSetPrompt)
-    {
+    if (src->ScriptToSetPrompt) {
         auto copy = gcnew array<String^>(src->ScriptToSetPrompt->Length);
-        for (int i = 0; i < src->ScriptToSetPrompt->Length; ++i)
-        {
+        for (int i = 0; i < src->ScriptToSetPrompt->Length; ++i) {
             copy[i] = src->ScriptToSetPrompt[i];
         }
         ScriptToSetPrompt = copy;
@@ -108,10 +106,8 @@ int REPL::Start()
     process->BeginOutputReadLine();
     process->BeginErrorReadLine();
 
-    if (ScriptToSetPrompt)
-    {
-        for (int i = 0; i < ScriptToSetPrompt->Length; ++i)
-        {
+    if (ScriptToSetPrompt) {
+        for (int i = 0; i < ScriptToSetPrompt->Length; ++i) {
             WriteLine(ScriptToSetPrompt[i]);
         }
     }
@@ -126,8 +122,7 @@ int REPL::Start()
 void REPL::Stop(int processID)
 {
     if (!m_RuntimeValues) throw gcnew InvalidOperationException();
-    if (!m_RuntimeValues->Process->HasExited)
-    {
+    if (!m_RuntimeValues->Process->HasExited) {
         m_RuntimeValues->Process->Kill();
     }
     m_RuntimeValues->Process->Close();
@@ -145,29 +140,24 @@ void REPL::WriteLine(String^ inputText)
 void REPL::WaitFor(String^ pattern)
 {
     Stopwatch^ sw = nullptr;
-    if (m_RuntimeValues->TimeoutMilliseconds > 0)
-    {
+    if (m_RuntimeValues->TimeoutMilliseconds > 0) {
         sw = gcnew Stopwatch();
         sw->Start();
     }
 
-    do
-    {
+    do {
         // Check standard output text
-        if (!String::IsNullOrEmpty(pattern))
-        {
+        if (!String::IsNullOrEmpty(pattern)) {
             Lock lock1(m_RuntimeValues->UntestedOutputLinesLock);
             bool breaks = false;
-            while (m_RuntimeValues->UntestedOutputLines->Count > 0)
-            {
+            while (m_RuntimeValues->UntestedOutputLines->Count > 0) {
                 auto outputLine = m_RuntimeValues->UntestedOutputLines[0];
                 m_RuntimeValues->UntestedOutputLines->RemoveAt(0);
                 {
                     Lock lock2(m_RuntimeValues->TestedOutputLinesLock);
                     m_RuntimeValues->TestedOutputLines->Add(outputLine);
                 }
-                if (Regex::IsMatch(outputLine, pattern))
-                {
+                if (Regex::IsMatch(outputLine, pattern)) {
                     breaks = true;
                     break;
                 }
@@ -176,17 +166,14 @@ void REPL::WaitFor(String^ pattern)
         }
 
         // Check timeout
-        if (m_RuntimeValues->TimeoutMilliseconds > 0)
-        {
-            if (sw->ElapsedMilliseconds > m_RuntimeValues->TimeoutMilliseconds)
-            {
+        if (m_RuntimeValues->TimeoutMilliseconds > 0) {
+            if (sw->ElapsedMilliseconds > m_RuntimeValues->TimeoutMilliseconds) {
                 throw gcnew TimeoutException();
             }
         }
     } while (true);
 
-    if (m_RuntimeValues->TimeoutMilliseconds > 0)
-    {
+    if (m_RuntimeValues->TimeoutMilliseconds > 0) {
         sw->Stop();
     }
 }
@@ -194,21 +181,17 @@ void REPL::WaitFor(String^ pattern)
 void REPL::WaitForPrompt()
 {
     Stopwatch^ sw = nullptr;
-    if (m_RuntimeValues->TimeoutMilliseconds > 0)
-    {
+    if (m_RuntimeValues->TimeoutMilliseconds > 0) {
         sw = gcnew Stopwatch();
         sw->Start();
     }
 
-    do
-    {
+    do {
         // Check standard error text
-        if (m_RuntimeValues->WriteLineCount > 0)
-        {
+        if (m_RuntimeValues->WriteLineCount > 0) {
             Lock lock1(m_RuntimeValues->UntestedErrorLinesLock);
             bool breaks = false;
-            while (m_RuntimeValues->UntestedErrorLines->Count > 0)
-            {
+            while (m_RuntimeValues->UntestedErrorLines->Count > 0) {
                 auto errorLine = m_RuntimeValues->UntestedErrorLines[0];
                 m_RuntimeValues->UntestedErrorLines->RemoveAt(0);
                 if (errorLine->EndsWith(PromptWithoutNewLine)) {
@@ -226,17 +209,14 @@ void REPL::WaitForPrompt()
         }
 
         // Check timeout
-        if (m_RuntimeValues->TimeoutMilliseconds > 0)
-        {
-            if (sw->ElapsedMilliseconds > m_RuntimeValues->TimeoutMilliseconds)
-            {
+        if (m_RuntimeValues->TimeoutMilliseconds > 0) {
+            if (sw->ElapsedMilliseconds > m_RuntimeValues->TimeoutMilliseconds) {
                 throw gcnew TimeoutException();
             }
         }
     } while (true);
 
-    if (m_RuntimeValues->TimeoutMilliseconds > 0)
-    {
+    if (m_RuntimeValues->TimeoutMilliseconds > 0) {
         sw->Stop();
     }
 }
@@ -253,8 +233,7 @@ String^ REPL::ReadOutputLine()
     }
     {
         Lock lock(m_RuntimeValues->TestedOutputLinesLock);
-        if (m_RuntimeValues->TestedOutputLines->Count > 0)
-        {
+        if (m_RuntimeValues->TestedOutputLines->Count > 0) {
             auto outputLine = m_RuntimeValues->TestedOutputLines[0];
             m_RuntimeValues->TestedOutputLines->RemoveAt(0);
             return outputLine;
@@ -267,8 +246,7 @@ String^ REPL::ReadErrorLine()
 {
     {
         Lock lock(m_RuntimeValues->UntestedErrorLinesLock);
-        if (m_RuntimeValues->UntestedErrorLines->Count > 0)
-        {
+        if (m_RuntimeValues->UntestedErrorLines->Count > 0) {
             auto errorLine = m_RuntimeValues->UntestedErrorLines[0];
             m_RuntimeValues->UntestedErrorLines->RemoveAt(0);
             return errorLine;
@@ -276,8 +254,7 @@ String^ REPL::ReadErrorLine()
     }
     {
         Lock lock(m_RuntimeValues->TestedErrorLinesLock);
-        if (m_RuntimeValues->TestedErrorLines->Count > 0)
-        {
+        if (m_RuntimeValues->TestedErrorLines->Count > 0) {
             auto errorLine = m_RuntimeValues->TestedErrorLines[0];
             m_RuntimeValues->TestedErrorLines->RemoveAt(0);
             return errorLine;

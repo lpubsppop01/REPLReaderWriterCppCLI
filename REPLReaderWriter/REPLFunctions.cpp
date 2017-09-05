@@ -38,8 +38,7 @@ DECLSPEC_DLLPORT int REPLStartW(const wchar_t* command, const wchar_t* templateN
 {
     try {
         return REPLManager::Start(gcnew String(command), gcnew String(templateName));
-    }
-    catch (Exception^) {
+    } catch (Exception^) {
         return -1;
     }
 }
