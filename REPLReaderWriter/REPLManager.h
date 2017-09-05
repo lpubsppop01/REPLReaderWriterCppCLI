@@ -17,7 +17,7 @@ public:
     static void Stop(int processID);
     static void SetTimeout(int processID, int timeoutMilliseconds);
     static void WriteLine(int processID, String^ inputText);
-    static void WaitFor(int processID, String ^ pattern);
+    static void WaitFor(int processID, String^ pattern);
     static void WaitForPrompt(int processID);
     static String^ ReadOutputLine(int processID);
     static String^ ReadErrorLine(int processID);

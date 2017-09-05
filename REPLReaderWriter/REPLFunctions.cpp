@@ -10,7 +10,7 @@ using namespace lpubsppop01::REPLReaderWriter;
 const int WCHAR_ARRAY_COUNT_MAX = 100;
 std::vector<wchar_t*> wcharArrays;
 
-const wchar_t* NewWCharArray(String ^str)
+const wchar_t* NewWCharArray(String^ str)
 {
     auto wcharArray = new wchar_t[str->Length + 1];
     for (int i = 0; i < str->Length; ++i) {
@@ -58,8 +58,7 @@ DECLSPEC_DLLPORT int REPLWaitFor(int processID, const wchar_t* pattern)
 {
     try {
         REPLManager::WaitFor(processID, gcnew String(pattern));
-    }
-    catch (Exception^) {
+    } catch (Exception^) {
         return -1;
     }
     return 0;
@@ -69,8 +68,7 @@ DECLSPEC_DLLPORT int REPLWaitForPrompt(int processID)
 {
     try {
         REPLManager::WaitForPrompt(processID);
-    }
-    catch (Exception^) {
+    } catch (Exception^) {
         return -1;
     }
     return 0;
@@ -97,8 +95,7 @@ DECLSPEC_DLLPORT int REPLStop(int processID)
     try {
         REPLManager::Stop(processID);
         DeleteWCharArrays();
-    }
-    catch (Exception^) {
+    } catch (Exception^) {
         return -1;
     }
     return 0;

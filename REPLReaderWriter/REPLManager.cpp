@@ -4,7 +4,7 @@
 namespace lpubsppop01 {
 namespace REPLReaderWriter {
 
-REPL ^ REPLManager::FindREPL(int processID)
+REPL^ REPLManager::FindREPL(int processID)
 {
     for (int i = 0; i < repls->Count; ++i) {
         if (repls[i]->ProcessID == processID) {
@@ -14,7 +14,7 @@ REPL ^ REPLManager::FindREPL(int processID)
     return nullptr;
 }
 
-int REPLManager::Start(String ^ command, String ^ templateName)
+int REPLManager::Start(String^ command, String^ templateName)
 {
     auto repl = (REPL^)REPLTemplates::GetByName(templateName)->Clone();
     repl->Command = command;
@@ -43,7 +43,7 @@ void REPLManager::WriteLine(int processID, String^ inputText)
     repl->WriteLine(inputText);
 }
 
-void REPLManager::WaitFor(int processID, String ^ pattern)
+void REPLManager::WaitFor(int processID, String^ pattern)
 {
     auto repl = FindREPL(processID);
     if (repl == nullptr) throw gcnew InvalidOperationException();

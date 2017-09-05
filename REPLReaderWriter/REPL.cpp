@@ -112,7 +112,7 @@ void REPL::Stop(int processID)
     m_RuntimeValues = nullptr;
 }
 
-void REPL::WriteLine(String ^ inputText)
+void REPL::WriteLine(String^ inputText)
 {
     if (!m_RuntimeValues) throw gcnew InvalidOperationException();
     m_RuntimeValues->Process->StandardInput->Write(inputText + NewLine);
@@ -120,7 +120,7 @@ void REPL::WriteLine(String ^ inputText)
     ++(m_RuntimeValues->WriteLineCount);
 }
 
-void REPL::WaitFor(String ^ pattern)
+void REPL::WaitFor(String^ pattern)
 {
     Stopwatch^ sw = nullptr;
     if (m_RuntimeValues->TimeoutMilliseconds > 0)
