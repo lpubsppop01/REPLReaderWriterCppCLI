@@ -224,18 +224,18 @@ void REPL::WaitForPrompt()
 String^ REPL::ReadLine()
 {
     {
-        Lock lock(m_RuntimeValues->UntestedOutputLinesLock);
-        if (m_RuntimeValues->UntestedOutputLines->Count > 0) {
-            auto outputLine = m_RuntimeValues->UntestedOutputLines[0];
-            m_RuntimeValues->UntestedOutputLines->RemoveAt(0);
-            return outputLine;
-        }
-    }
-    {
         Lock lock(m_RuntimeValues->TestedOutputLinesLock);
         if (m_RuntimeValues->TestedOutputLines->Count > 0) {
             auto outputLine = m_RuntimeValues->TestedOutputLines[0];
             m_RuntimeValues->TestedOutputLines->RemoveAt(0);
+            return outputLine;
+        }
+    }
+    {
+        Lock lock(m_RuntimeValues->UntestedOutputLinesLock);
+        if (m_RuntimeValues->UntestedOutputLines->Count > 0) {
+            auto outputLine = m_RuntimeValues->UntestedOutputLines[0];
+            m_RuntimeValues->UntestedOutputLines->RemoveAt(0);
             return outputLine;
         }
     }
@@ -245,18 +245,18 @@ String^ REPL::ReadLine()
 String^ REPL::ReadErrorLine()
 {
     {
-        Lock lock(m_RuntimeValues->UntestedErrorLinesLock);
-        if (m_RuntimeValues->UntestedErrorLines->Count > 0) {
-            auto errorLine = m_RuntimeValues->UntestedErrorLines[0];
-            m_RuntimeValues->UntestedErrorLines->RemoveAt(0);
-            return errorLine;
-        }
-    }
-    {
         Lock lock(m_RuntimeValues->TestedErrorLinesLock);
         if (m_RuntimeValues->TestedErrorLines->Count > 0) {
             auto errorLine = m_RuntimeValues->TestedErrorLines[0];
             m_RuntimeValues->TestedErrorLines->RemoveAt(0);
+            return errorLine;
+        }
+    }
+    {
+        Lock lock(m_RuntimeValues->UntestedErrorLinesLock);
+        if (m_RuntimeValues->UntestedErrorLines->Count > 0) {
+            auto errorLine = m_RuntimeValues->UntestedErrorLines[0];
+            m_RuntimeValues->UntestedErrorLines->RemoveAt(0);
             return errorLine;
         }
     }
