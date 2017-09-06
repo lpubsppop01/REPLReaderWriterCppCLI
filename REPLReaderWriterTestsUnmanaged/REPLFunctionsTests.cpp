@@ -16,17 +16,33 @@ namespace REPLReaderWriterTests
             Assert::IsTrue(processID > 0);
             REPLSetTimeout(processID, 3000);
 
-            REPLWriteLineW(processID, L"1 + 1");
-            if (REPLWaitFor(processID, L".*")) {
-                Assert::Fail();
+            {
+                REPLWriteLineW(processID, L"1 + 1");
+                if (REPLWaitFor(processID, L".*")) {
+                    Assert::Fail();
+                }
+                auto outputText = REPLReadLineW(processID);
+                Assert::IsTrue(outputText != NULL && wcscmp(L"2", outputText) == 0);
+                if (REPLWaitForPrompt(processID)) {
+                    Assert::Fail();
+                }
+                auto errorText = REPLReadErrorLineW(processID);
+                Assert::AreEqual(NULL, errorText);
             }
-            auto outputText = REPLReadLineW(processID);
-            Assert::IsTrue(outputText != NULL && wcscmp(L"2", outputText) == 0);
-            if (REPLWaitForPrompt(processID)) {
-                Assert::Fail();
+
+            {
+                REPLWriteLineW(processID, L"2 * 2");
+                if (REPLWaitFor(processID, L".*")) {
+                    Assert::Fail();
+                }
+                auto outputText = REPLReadLinesW(processID);
+                Assert::IsTrue(outputText != NULL && wcscmp(L"4", outputText) == 0);
+                if (REPLWaitForPrompt(processID)) {
+                    Assert::Fail();
+                }
+                auto errorText = REPLReadErrorLinesW(processID);
+                Assert::AreEqual(NULL, errorText);
             }
-            auto errorText = REPLReadErrorLineW(processID);
-            Assert::AreEqual(NULL, errorText);
 
             int errorCode = REPLStop(processID);
             Assert::IsTrue(errorCode == 0);

@@ -64,11 +64,25 @@ String^ REPLManager::ReadLine(int processID)
     return repl->ReadLine();
 }
 
+String^ REPLManager::ReadLines(int processID)
+{
+    auto repl = FindREPL(processID);
+    if (repl == nullptr) throw gcnew InvalidOperationException();
+    return repl->ReadLines();
+}
+
 String^ REPLManager::ReadErrorLine(int processID)
 {
     auto repl = FindREPL(processID);
     if (repl == nullptr) throw gcnew InvalidOperationException();
     return repl->ReadErrorLine();
+}
+
+String^ REPLManager::ReadErrorLines(int processID)
+{
+    auto repl = FindREPL(processID);
+    if (repl == nullptr) throw gcnew InvalidOperationException();
+    return repl->ReadErrorLines();
 }
 
 }

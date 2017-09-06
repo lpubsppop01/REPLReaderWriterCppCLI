@@ -43,6 +43,18 @@ DECLSPEC_DLLPORT int REPLStartW(const wchar_t* command, const wchar_t* templateN
     }
 }
 
+DECLSPEC_DLLPORT int REPLStop(int processID)
+{
+    try {
+        REPLManager::Stop(processID);
+        DeleteWCharArrays();
+    }
+    catch (Exception^) {
+        return -1;
+    }
+    return 0;
+}
+
 DECLSPEC_DLLPORT void REPLSetTimeout(int processID, int timeoutMilliseconds)
 {
     REPLManager::SetTimeout(processID, timeoutMilliseconds);
@@ -81,6 +93,14 @@ DECLSPEC_DLLPORT const wchar_t* REPLReadLineW(int processID)
     return lineWCharArray;
 }
 
+DECLSPEC_DLLPORT const wchar_t* REPLReadLinesW(int processID)
+{
+    auto lineStr = REPLManager::ReadLines(processID);
+    if (lineStr == nullptr) return NULL;
+    auto lineWCharArray = NewWCharArray(lineStr);
+    return lineWCharArray;
+}
+
 DECLSPEC_DLLPORT const wchar_t* REPLReadErrorLineW(int processID)
 {
     auto lineStr = REPLManager::ReadErrorLine(processID);
@@ -89,13 +109,10 @@ DECLSPEC_DLLPORT const wchar_t* REPLReadErrorLineW(int processID)
     return lineWCharArray;
 }
 
-DECLSPEC_DLLPORT int REPLStop(int processID)
+DECLSPEC_DLLPORT const wchar_t* REPLReadErrorLinesW(int processID)
 {
-    try {
-        REPLManager::Stop(processID);
-        DeleteWCharArrays();
-    } catch (Exception^) {
-        return -1;
-    }
-    return 0;
+    auto lineStr = REPLManager::ReadErrorLines(processID);
+    if (lineStr == nullptr) return NULL;
+    auto lineWCharArray = NewWCharArray(lineStr);
+    return lineWCharArray;
 }

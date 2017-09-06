@@ -20,7 +20,9 @@ public:
     static void WaitFor(int processID, String^ pattern);
     static void WaitForPrompt(int processID);
     static String^ ReadLine(int processID);
+    static String^ ReadLines(int processID);
     static String^ ReadErrorLine(int processID);
+    static String^ ReadErrorLines(int processID);
 };
 
 }

@@ -17,7 +17,9 @@ DECLSPEC_DLLPORT void REPLWriteLineW(int processID, const wchar_t* inputText);
 DECLSPEC_DLLPORT int REPLWaitFor(int processID, const wchar_t* pattern);
 DECLSPEC_DLLPORT int REPLWaitForPrompt(int processID);
 DECLSPEC_DLLPORT const wchar_t* REPLReadLineW(int processID);
+DECLSPEC_DLLPORT const wchar_t* REPLReadLinesW(int processID);
 DECLSPEC_DLLPORT const wchar_t* REPLReadErrorLineW(int processID);
+DECLSPEC_DLLPORT const wchar_t* REPLReadErrorLinesW(int processID);
 
 #ifdef __cplusplus
 }

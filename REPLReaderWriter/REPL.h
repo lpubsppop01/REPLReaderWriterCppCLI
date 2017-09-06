@@ -74,7 +74,9 @@ public:
     void WaitFor(String^ pattern);
     void WaitForPrompt();
     String^ ReadLine();
+    String^ ReadLines();
     String^ ReadErrorLine();
+    String^ ReadErrorLines();
 };
 
 }

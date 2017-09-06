@@ -2,6 +2,7 @@
 #include "Lock.h"
 #using "System.Core.dll"
 
+using namespace System::Collections::Generic;
 using namespace System::Linq;
 using namespace System::Text::RegularExpressions;
 
@@ -242,6 +243,23 @@ String^ REPL::ReadLine()
     return nullptr;
 }
 
+String^ REPL::ReadLines()
+{
+    auto buf = gcnew List<String^>();
+    {
+        Lock lock(m_RuntimeValues->TestedOutputLinesLock);
+        buf->AddRange(m_RuntimeValues->TestedOutputLines);
+        m_RuntimeValues->TestedOutputLines->Clear();
+    }
+    {
+        Lock lock(m_RuntimeValues->UntestedOutputLinesLock);
+        buf->AddRange(m_RuntimeValues->UntestedOutputLines);
+        m_RuntimeValues->UntestedOutputLines->Clear();
+    }
+    if (buf->Count == 0) return nullptr;
+    return String::Join(Environment::NewLine, buf);
+}
+
 String^ REPL::ReadErrorLine()
 {
     {
@@ -261,6 +279,23 @@ String^ REPL::ReadErrorLine()
         }
     }
     return nullptr;
+}
+
+String^ REPL::ReadErrorLines()
+{
+    auto buf = gcnew List<String^>();
+    {
+        Lock lock(m_RuntimeValues->TestedErrorLinesLock);
+        buf->AddRange(m_RuntimeValues->TestedErrorLines);
+        m_RuntimeValues->TestedErrorLines->Clear();
+    }
+    {
+        Lock lock(m_RuntimeValues->UntestedErrorLinesLock);
+        buf->AddRange(m_RuntimeValues->UntestedErrorLines);
+        m_RuntimeValues->UntestedErrorLines->Clear();
+    }
+    if (buf->Count == 0) return nullptr;
+    return String::Join(Environment::NewLine, buf);
 }
 
 }
