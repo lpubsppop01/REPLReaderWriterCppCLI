@@ -73,9 +73,9 @@ DECLSPEC_DLLPORT int REPLWaitForPrompt(int processID)
     return 0;
 }
 
-DECLSPEC_DLLPORT const wchar_t* REPLReadOutputLineW(int processID)
+DECLSPEC_DLLPORT const wchar_t* REPLReadLineW(int processID)
 {
-    auto lineStr = REPLManager::ReadOutputLine(processID);
+    auto lineStr = REPLManager::ReadLine(processID);
     if (lineStr == nullptr) return NULL;
     auto lineWCharArray = NewWCharArray(lineStr);
     return lineWCharArray;

@@ -57,11 +57,11 @@ void REPLManager::WaitForPrompt(int processID)
     repl->WaitForPrompt();
 }
 
-String^ REPLManager::ReadOutputLine(int processID)
+String^ REPLManager::ReadLine(int processID)
 {
     auto repl = FindREPL(processID);
     if (repl == nullptr) throw gcnew InvalidOperationException();
-    return repl->ReadOutputLine();
+    return repl->ReadLine();
 }
 
 String^ REPLManager::ReadErrorLine(int processID)

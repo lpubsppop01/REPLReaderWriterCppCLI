@@ -20,7 +20,7 @@ namespace REPLReaderWriterTests
             if (REPLWaitFor(processID, L".*")) {
                 Assert::Fail();
             }
-            auto outputText = REPLReadOutputLineW(processID);
+            auto outputText = REPLReadLineW(processID);
             Assert::IsTrue(outputText != NULL && wcscmp(L"2", outputText) == 0);
             if (REPLWaitForPrompt(processID)) {
                 Assert::Fail();

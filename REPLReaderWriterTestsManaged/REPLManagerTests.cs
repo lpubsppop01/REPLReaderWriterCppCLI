@@ -16,7 +16,7 @@ namespace REPLReaderWriterTestsManaged
 
             REPLManager.WriteLine(processID, "1 + 1");
             REPLManager.WaitFor(processID, ".*");
-            string outputText = REPLManager.ReadOutputLine(processID);
+            string outputText = REPLManager.ReadLine(processID);
             Assert.IsTrue(outputText == "2");
             REPLManager.WaitForPrompt(processID);
             string errorText = REPLManager.ReadErrorLine(processID);

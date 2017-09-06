@@ -221,7 +221,7 @@ void REPL::WaitForPrompt()
     }
 }
 
-String^ REPL::ReadOutputLine()
+String^ REPL::ReadLine()
 {
     {
         Lock lock(m_RuntimeValues->UntestedOutputLinesLock);

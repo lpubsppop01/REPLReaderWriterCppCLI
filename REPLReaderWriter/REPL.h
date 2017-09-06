@@ -73,7 +73,7 @@ public:
     void WriteLine(String^ inputText);
     void WaitFor(String^ pattern);
     void WaitForPrompt();
-    String^ ReadOutputLine();
+    String^ ReadLine();
     String^ ReadErrorLine();
 };
 
